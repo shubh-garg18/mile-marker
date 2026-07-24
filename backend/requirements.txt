@@ -1,0 +1,14 @@
+# Runtime
+Django==5.2.16
+djangorestframework==3.16.1
+django-cors-headers==4.9.0
+requests==2.34.2
+gunicorn==26.0.0
+whitenoise==6.12.0
+python-dotenv==1.2.2
+
+# Test + lint. Kept here so `pip install -r requirements.txt && pytest` works as
+# the README documents; the cost on the deploy build is a few seconds.
+pytest==9.1.1
+pytest-django==4.12.0
+ruff==0.16.0
