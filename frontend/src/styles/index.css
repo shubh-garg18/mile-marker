@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* The design idea is a dispatch console holding paper sheets: dark, quiet,
+   instrument-like chrome around log sheets rendered as warm paper with hairline
+   rules and ink. Every colour and type decision in the app derives from here. */
+@theme {
+  --color-console: #101823; /* app shell, dark dispatch chrome */
+  --color-console-2: #1a2534; /* raised panels */
+  --color-hairline: #5d7a99; /* dividers and input borders, 3.47:1 on a panel */
+  --color-paper: #f4efe3; /* log sheet stock, manila */
+  --color-ink: #1b2430; /* grid rules and duty lines on paper */
+  --color-signal: #e8a33d; /* DOT amber, route line and driving status on screen */
+  --color-steel: #8c9db4; /* off duty; also the secondary text tier */
+  --color-berth: #4c6b8a; /* sleeper berth */
+  --color-onduty: #2e7d74; /* on duty, not driving */
+  --color-flag: #e2685c; /* errors, limit warnings */
+  --color-body: #dbe4ef; /* primary text on the console */
+
+  /* Paper needs its own two duty colours. Amber is DOT-correct on a dark screen
+     but reaches only 1.88:1 on manila, making it the faintest mark on the sheet
+     and near-invisible in greyscale print, while steel is tuned for legibility on
+     the dark shell and goes too pale on paper. Both are darkened for the sheet;
+     the console keeps the originals. */
+  --color-signal-ink: #a86a12; /* driving, 3.87:1 on manila */
+  --color-steel-ink: #6e819a; /* off duty, 3.47:1 on manila */
+
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* The layout collapses to a single column below this. */
+  --breakpoint-desk: 900px;
+}
+
+html {
+  background-color: var(--color-console);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible keyboard focus everywhere, on both the console and the paper. */
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Leaflet's popup chrome is styled for a light page; ours sits on the console. */
+.leaflet-container {
+  background: var(--color-console-2);
+  font-family: var(--font-body);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-radius: 2px;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--color-console) 40%, transparent);
+}
+
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-console) 75%, transparent) !important;
+  color: var(--color-steel);
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-signal);
+}
+
+/* Print: drop the console, keep the paper. One sheet per page. */
+@page {
+  size: letter landscape;
+  margin: 0.4in;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    color: var(--color-ink);
+  }
+
+  /* Undo the app shell's dark chrome and its spacing. The wrapper div carries
+     bg-console, and without this it prints as a charcoal field around every
+     sheet the moment the reader enables background graphics, which is exactly
+     what they do when they want the manila to come out. */
+  body > div {
+    background: transparent !important;
+    min-height: 0 !important;
+  }
+
+  main {
+    display: block !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* The sheet must print at full size, not at the width of a screen column. */
+  article svg {
+    min-width: 0 !important;
+  }
+
+  .sheet-scroll {
+    overflow: visible !important;
+  }
+
+  article {
+    background: var(--color-paper) !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  article + article {
+    break-before: page;
+    page-break-before: always;
+  }
+}

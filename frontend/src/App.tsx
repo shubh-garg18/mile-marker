@@ -1,0 +1,182 @@
+import { useEffect, useRef, useState } from "react";
+
+import { ApiError, checkHealth, planTrip } from "./api/client";
+import LogSheetStack from "./components/LogSheetStack";
+import RouteMap from "./components/RouteMap";
+import StopItinerary from "./components/StopItinerary";
+import TripForm from "./components/TripForm";
+import TripSummary from "./components/TripSummary";
+import type { TripPlan, TripPlanRequest } from "./types/trip";
+
+/** How long a request may run before we explain that the server is waking. */
+const COLD_START_HINT_MS = 3000;
+
+export default function App() {
+  const [plan, setPlan] = useState<TripPlan | null>(null);
+  const [isPlanning, setIsPlanning] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
+  const [showColdStartHint, setShowColdStartHint] = useState(false);
+  const requestId = useRef(0);
+
+  // Wake the free-tier backend before anyone has finished typing.
+  useEffect(() => {
+    void checkHealth();
+  }, []);
+
+  async function handleSubmit(request: TripPlanRequest) {
+    const id = ++requestId.current;
+    setIsPlanning(true);
+    setError(null);
+    setShowColdStartHint(false);
+
+    const hintTimer = setTimeout(() => {
+      if (requestId.current === id) setShowColdStartHint(true);
+    }, COLD_START_HINT_MS);
+
+    try {
+      const result = await planTrip(request);
+      if (requestId.current === id) setPlan(result);
+    } catch (caught) {
+      if (requestId.current === id) {
+        setError(
+          caught instanceof ApiError
+            ? caught
+            : new ApiError("INTERNAL_ERROR", "Something went wrong. Please try again."),
+        );
+      }
+    } finally {
+      clearTimeout(hintTimer);
+      if (requestId.current === id) {
+        setIsPlanning(false);
+        setShowColdStartHint(false);
+      }
+    }
+  }
+
+  const origin = plan?.waypoints.find((point) => point.role === "current");
+
+  // A polite live region is only reliably announced when it already exists and
+  // its contents change. Rendering it only while planning would mount the region
+  // and its text in one commit, which screen readers commonly miss.
+  const announcement = isPlanning
+    ? "Routing and simulating hours of service."
+    : plan
+      ? `Plan ready. ${plan.trip.days_count} log ${
+          plan.trip.days_count === 1 ? "sheet" : "sheets"
+        }, ${plan.stops.length} stops.`
+      : error
+        ? `Could not plan that trip. ${error.message}`
+        : "";
+
+  return (
+    <div className="min-h-screen bg-console">
+      <div role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
+
+      <header className="border-b border-hairline print:hidden">
+        <div className="mx-auto flex max-w-[110rem] flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-4 desk:px-8">
+          <h1 className="font-display text-lg font-semibold tracking-tight text-white">
+            ELD Trip Planner
+          </h1>
+          <p className="text-sm text-steel">
+            Route, required stops, and a drawn FMCSA daily log for every day of the trip.
+          </p>
+          {plan ? (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="ml-auto rounded-sm border border-hairline px-3 py-1.5 font-display text-xs tracking-widest text-steel uppercase transition-colors hover:border-signal hover:text-signal"
+            >
+              Print / Save as PDF
+            </button>
+          ) : null}
+        </div>
+      </header>
+
+      <main className="mx-auto grid max-w-[110rem] gap-8 px-5 py-8 desk:grid-cols-[22rem_minmax(0,1fr)] desk:px-8">
+        <aside className="flex flex-col gap-8 print:hidden">
+          <div className="rounded-sm border border-hairline bg-console-2 p-5">
+            <TripForm
+              onSubmit={handleSubmit}
+              isPlanning={isPlanning}
+              errorField={error?.field ?? null}
+              errorMessage={error?.message ?? null}
+            />
+            {isPlanning ? <PlanningNotice showColdStartHint={showColdStartHint} /> : null}
+            {error && !error.field ? <ErrorNotice message={error.message} /> : null}
+          </div>
+
+          {plan ? (
+            <>
+              <div className="rounded-sm border border-hairline bg-console-2 p-5">
+                <TripSummary trip={plan.trip} warnings={plan.warnings} />
+              </div>
+              <div className="rounded-sm border border-hairline bg-console-2 p-5">
+                <StopItinerary
+                  stops={plan.stops}
+                  originLabel={origin?.label ?? "Origin"}
+                  departure={plan.trip.start_datetime}
+                />
+              </div>
+            </>
+          ) : null}
+        </aside>
+
+        <section className="flex min-w-0 flex-col gap-8">
+          {plan ? (
+            <>
+              <div className="print:hidden">
+                <RouteMap route={plan.route} stops={plan.stops} waypoints={plan.waypoints} />
+              </div>
+              <LogSheetStack days={plan.days} header={plan.log_header} trip={plan.trip} />
+            </>
+          ) : (
+            <EmptyState />
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function PlanningNotice({ showColdStartHint }: { showColdStartHint: boolean }) {
+  return (
+    <div className="mt-4 border-t border-hairline pt-4">
+      <p className="font-data text-sm text-signal">Routing and simulating hours of service…</p>
+      {showColdStartHint ? (
+        <p className="mt-1.5 text-xs leading-relaxed text-steel">
+          The API runs on a free instance that sleeps when idle. Waking it can take up to a
+          minute. This is not a failure.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function ErrorNotice({ message }: { message: string }) {
+  return (
+    <p
+      role="alert"
+      className="mt-4 border-t border-hairline pt-4 text-sm leading-relaxed text-flag"
+    >
+      {message}
+    </p>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex min-h-[26rem] flex-col justify-center gap-3 rounded-sm border border-dashed border-hairline px-8 py-16">
+      <p className="max-w-prose text-sm leading-relaxed text-steel">
+        Enter a trip on the left. You'll get a truck-legal route with every stop the
+        regulations require: the 30-minute break, fuel every 1,000 miles, 10-hour rests, and a
+        34-hour restart if the 70-hour cycle runs out. Each calendar day the trip spans gets
+        its own filled daily log sheet.
+      </p>
+      <p className="font-data text-xs text-steel">
+        Property-carrying driver · 70 hours / 8 days · no adverse conditions
+      </p>
+    </div>
+  );
+}
