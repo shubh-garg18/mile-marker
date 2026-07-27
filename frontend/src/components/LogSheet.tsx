@@ -84,7 +84,7 @@ export default function LogSheet({ day, header, totalDays }: LogSheetProps) {
   return (
     <article
       aria-label={`Driver\u0027s daily log for ${day.date}`}
-      className="break-inside-avoid rounded-sm bg-paper p-6 text-ink shadow-sm print:rounded-none print:p-4 print:shadow-none"
+      className="sheet-lift break-inside-avoid rounded-sm bg-paper p-6 text-ink print:rounded-none print:p-4"
     >
       <SheetHeader day={day} header={header} totalDays={totalDays} />
 

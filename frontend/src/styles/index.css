@@ -97,6 +97,16 @@ body {
   }
 }
 
+/* Paper lifted off the desk. Tailwind's default shadow is a faint black at low
+   opacity, which on a near-black ground is invisible, so the sheets sat flat
+   against the shell. A deeper, warmer shadow is what reads as a sheet resting on
+   a surface rather than a light rectangle painted on it. */
+.sheet-lift {
+  box-shadow:
+    0 14px 30px -10px color-mix(in srgb, var(--color-console) 92%, transparent),
+    0 3px 8px -3px color-mix(in srgb, var(--color-console) 85%, transparent);
+}
+
 /* Leaflet's popup chrome is styled for a light page; ours sits on the console. */
 .leaflet-container {
   background: var(--color-console-2);
@@ -159,6 +169,10 @@ body {
 
   .sheet-scroll {
     overflow: visible !important;
+  }
+
+  .sheet-lift {
+    box-shadow: none !important;
   }
 
   article {

@@ -60,36 +60,46 @@ export default function TripForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      <Field
-        label="Current location"
-        name="current_location"
-        value={currentLocation}
-        onChange={setCurrentLocation}
-        placeholder="Dallas, TX"
-        errorField={errorField}
-        errorMessage={errorMessage}
-        disabled={isPlanning}
-      />
-      <Field
-        label="Pickup location"
-        name="pickup_location"
-        value={pickupLocation}
-        onChange={setPickupLocation}
-        placeholder="Oklahoma City, OK"
-        errorField={errorField}
-        errorMessage={errorMessage}
-        disabled={isPlanning}
-      />
-      <Field
-        label="Dropoff location"
-        name="dropoff_location"
-        value={dropoffLocation}
-        onChange={setDropoffLocation}
-        placeholder="Denver, CO"
-        errorField={errorField}
-        errorMessage={errorMessage}
-        disabled={isPlanning}
-      />
+      {/* One rail down the three locations. They are a route, not three
+          unrelated text boxes, and the S / P / D glyphs are the same ones the
+          map puts on its markers. */}
+      <div className="flex flex-col gap-4">
+        <Field
+          label="Current location"
+          marker="S"
+          continues
+          name="current_location"
+          value={currentLocation}
+          onChange={setCurrentLocation}
+          placeholder="Dallas, TX"
+          errorField={errorField}
+          errorMessage={errorMessage}
+          disabled={isPlanning}
+        />
+        <Field
+          label="Pickup location"
+          marker="P"
+          continues
+          name="pickup_location"
+          value={pickupLocation}
+          onChange={setPickupLocation}
+          placeholder="Oklahoma City, OK"
+          errorField={errorField}
+          errorMessage={errorMessage}
+          disabled={isPlanning}
+        />
+        <Field
+          label="Dropoff location"
+          marker="D"
+          name="dropoff_location"
+          value={dropoffLocation}
+          onChange={setDropoffLocation}
+          placeholder="Denver, CO"
+          errorField={errorField}
+          errorMessage={errorMessage}
+          disabled={isPlanning}
+        />
+      </div>
       <Field
         label="Cycle used"
         hint="hours of the 70-hour / 8-day limit already spent"
@@ -121,7 +131,7 @@ export default function TripForm({
       <button
         type="submit"
         disabled={isPlanning}
-        className="mt-1 rounded-sm bg-signal px-4 py-2.5 font-display text-sm font-semibold tracking-wide text-console uppercase transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-1 rounded-sm bg-signal px-4 py-2.5 font-display text-sm font-semibold tracking-wide text-console uppercase transition-colors hover:bg-bright focus-visible:bg-bright disabled:cursor-not-allowed disabled:bg-hairline disabled:text-console-2"
       >
         {isPlanning ? "Planning…" : "Plan trip"}
       </button>
@@ -144,6 +154,10 @@ interface FieldProps {
   min?: number;
   max?: number;
   step?: number;
+  /** Route glyph shown on the rail, matching the map markers. */
+  marker?: string;
+  /** Draw the rail on down to the next field. */
+  continues?: boolean;
 }
 
 function Field({
@@ -156,6 +170,8 @@ function Field({
   disabled,
   hint,
   type = "text",
+  marker,
+  continues = false,
   ...inputProps
 }: FieldProps) {
   const id = useId();
@@ -168,7 +184,23 @@ function Field({
   const describedBy = [hint ? hintId : null, isFaulty ? errorId : null].filter(Boolean).join(" ");
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`relative flex flex-col gap-1.5 ${marker ? "pl-7" : ""}`}>
+      {marker ? (
+        <>
+          <span
+            aria-hidden="true"
+            className="absolute top-0 left-0 flex h-[1.125rem] w-[1.125rem] items-center justify-center rounded-full border border-hairline font-data text-[0.5rem] text-steel"
+          >
+            {marker}
+          </span>
+          {continues ? (
+            <span
+              aria-hidden="true"
+              className="absolute top-[1.125rem] bottom-[-1rem] left-[0.5rem] w-px bg-hairline/50"
+            />
+          ) : null}
+        </>
+      ) : null}
       <label htmlFor={id} className="font-display text-xs tracking-widest text-steel uppercase">
         {label}
       </label>
@@ -187,8 +219,8 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={isFaulty || undefined}
         aria-describedby={describedBy || undefined}
-        className={`rounded-sm border bg-console px-3 py-2 font-data text-sm text-bright placeholder:text-steel disabled:opacity-60 ${
-          isFaulty ? "border-flag" : "border-hairline focus:border-signal"
+        className={`rounded-sm border bg-console px-3 py-2 font-data text-sm text-bright transition-colors placeholder:text-steel disabled:opacity-60 ${
+          isFaulty ? "border-flag" : "border-hairline hover:border-steel focus:border-signal"
         }`}
       />
       {isFaulty && errorMessage ? (

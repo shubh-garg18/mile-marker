@@ -45,7 +45,7 @@ export default function BlankSheet({ isPlanning }: { isPlanning: boolean }) {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-sm bg-paper p-4 desk:p-6">
+      <div className="sheet-lift overflow-x-auto rounded-sm bg-paper p-4 desk:p-6">
         <svg
           viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
           className="block min-w-[44rem] font-data"

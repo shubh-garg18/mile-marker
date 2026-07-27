@@ -210,6 +210,28 @@ reached by getting it wrong first, that is recorded too.
 
 ## Frontend
 
+- **The header carries identity and actions, nothing else.** It used to hold a wordmark, an
+  eyebrow, a full descriptive sentence and a button, all competing on one baseline. The
+  sentence was onboarding copy living permanently in chrome; it moved to the empty state,
+  where it is read once and then replaced by the plan. The bar is sticky because the sheets
+  make the page several screens long, so Print and the running totals stay reachable from the
+  bottom of day three, and it sits above Leaflet's controls at z-index 800.
+
+- **The three location inputs are drawn as one route.** They were three identical stacked
+  text boxes, but they are a sequence, and the sequence is information. A rail connects them
+  with the same S / P / D glyphs the map puts on its markers, so the form and the map share
+  one vocabulary.
+
+- **The map legend lists only what the trip contains.** Markers are single characters so they
+  stay legible at map scale, which leaves "R" and "34" meaningless on their own. A fixed
+  legend would advertise stop types most trips never produce, so it is built from the stops
+  actually returned.
+
+- **The sheets have a real shadow.** Tailwind's default is a faint black at low opacity, which
+  on a near-black ground is invisible, so the paper sat flat against the shell. A deeper, warmer
+  shadow is what reads as a sheet resting on a surface rather than a light rectangle painted
+  on one. It is removed for print, where it would only cost toner.
+
 - **The console is a warm neutral, not the usual navy.** The sheets are manila, and a warm
   stock on a blue-grey shell reads as a picture of paper pasted onto a screen rather than
   paper lying on a desk. Pulling the shell to warm asphalt puts both in the same light and
