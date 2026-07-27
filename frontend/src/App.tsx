@@ -94,7 +94,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[110rem] gap-8 px-5 py-8 desk:grid-cols-[22rem_minmax(0,1fr)] desk:px-8">
+      <main className="mx-auto grid max-w-[110rem] gap-8 px-5 pt-8 pb-8 desk:grid-cols-[22rem_minmax(0,1fr)] desk:px-8">
         <aside className="flex flex-col gap-8 print:hidden">
           <div className="rounded-sm border border-hairline bg-console-2 p-5">
             <TripForm
@@ -125,17 +125,24 @@ export default function App() {
 
         <section className="flex min-w-0 flex-col gap-8">
           {plan ? (
-            <>
-              <div className="print:hidden">
-                <RouteMap route={plan.route} stops={plan.stops} waypoints={plan.waypoints} />
-              </div>
-              <LogSheetStack days={plan.days} header={plan.log_header} trip={plan.trip} />
-            </>
+            <div className="print:hidden">
+              <RouteMap route={plan.route} stops={plan.stops} waypoints={plan.waypoints} />
+            </div>
           ) : (
             <EmptyState />
           )}
         </section>
       </main>
+
+      {/* The sheets sit outside the two-column grid because a log sheet is a
+          document: it is 68rem wide at its readable minimum, which does not fit
+          beside a 22rem sidebar until the viewport passes 1536px. In the column
+          it scrolled horizontally on any ordinary laptop, clipping the grid. */}
+      {plan ? (
+        <section className="mx-auto min-w-0 max-w-[110rem] px-5 pb-8 desk:px-8">
+          <LogSheetStack days={plan.days} header={plan.log_header} trip={plan.trip} />
+        </section>
+      ) : null}
     </div>
   );
 }

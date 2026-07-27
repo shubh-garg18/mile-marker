@@ -105,7 +105,11 @@ body {
     min-height: 0 !important;
   }
 
-  main {
+  /* Both wrappers: the two-column shell, and the full-width band the sheets
+     live in. Either one's max-width or padding would otherwise narrow the
+     paper on the page. */
+  main,
+  body > div > section {
     display: block !important;
     max-width: none !important;
     padding: 0 !important;
