@@ -1,4 +1,4 @@
-import { clockTime, decimalHours, miles, shortDate } from "../format";
+import { clockTime, decimalHours, hoursAsClock, miles, shortDate } from "../format";
 import type { TripTotals } from "../types/trip";
 
 interface TripSummaryProps {
@@ -18,11 +18,19 @@ export default function TripSummary({ trip, warnings }: TripSummaryProps) {
     <section aria-label="Trip summary" className="flex flex-col gap-4">
       <h2 className="font-display text-xs tracking-widest text-steel uppercase">Trip</h2>
 
+      {/* The three figures a dispatcher scans first, set like gauges: the value
+          leads in the data face, the label sits small beneath it. */}
+      <div className="grid grid-cols-3 gap-3 border-b border-hairline pb-4">
+        <Figure value={miles(trip.total_distance_miles)} unit="mi" label="Distance" />
+        <Figure value={hoursAsClock(trip.total_driving_hours)} unit="h" label="Driving" />
+        <Figure
+          value={String(trip.days_count)}
+          label={trip.days_count === 1 ? "Log sheet" : "Log sheets"}
+        />
+      </div>
+
       <dl className="flex flex-col gap-2">
-        <Row label="Distance" value={`${miles(trip.total_distance_miles)} mi`} />
-        <Row label="Driving" value={decimalHours(trip.total_driving_hours)} />
         <Row label="On duty" value={decimalHours(trip.total_on_duty_hours)} />
-        <Row label="Log sheets" value={String(trip.days_count)} />
         <Row
           label="Departs"
           value={`${shortDate(trip.start_datetime)} ${clockTime(trip.start_datetime)}`}
@@ -39,8 +47,8 @@ export default function TripSummary({ trip, warnings }: TripSummaryProps) {
             70-hour cycle
           </span>
           <span className="font-data text-sm tabular-nums text-bright">
-            {decimalHours(trip.cycle_used_end_hours)}
-            <span className="text-steel"> / {cycleLimit}</span>
+            {hoursAsClock(trip.cycle_used_end_hours)}
+            <span className="text-steel"> / {cycleLimit} h</span>
           </span>
         </div>
 
@@ -94,6 +102,20 @@ export default function TripSummary({ trip, warnings }: TripSummaryProps) {
         </ul>
       ) : null}
     </section>
+  );
+}
+
+function Figure({ value, unit, label }: { value: string; unit?: string; label: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="font-data text-xl leading-none text-bright tabular-nums">
+        {value}
+        {unit ? <span className="ml-1 text-xs text-steel">{unit}</span> : null}
+      </span>
+      <span className="font-display text-[0.6rem] tracking-widest text-steel uppercase">
+        {label}
+      </span>
+    </div>
   );
 }
 

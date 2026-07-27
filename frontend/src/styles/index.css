@@ -61,13 +61,24 @@ body {
   outline-offset: 2px;
 }
 
+/* Selected text carries the accent rather than the browser's blue. */
+::selection {
+  background: var(--color-signal);
+  color: var(--color-console);
+}
+
+/* Delays are zeroed too: a collapsed animation that still waits out its stagger
+   delay holds the element at its `from` state — an invisible duty trace — for
+   the length of the choreography it was supposed to replace. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }
 
@@ -97,6 +108,56 @@ body {
   }
 }
 
+/* Plan-arrival choreography. Three movements, all of which end exactly at the
+   unanimated state: panels rise into place, each sheet's duty trace inks itself
+   across the day, then the totals and remarks settle onto the paper. Reduced
+   motion collapses all three to the finished state instantly. */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* The clip rect over the duty trace. 872 px is the 864 px day plus the 8 px of
+   linecap allowance the rect carries, matching the rect's width attribute in
+   LogSheet.tsx. Browsers that cannot animate SVG geometry from CSS ignore the
+   `width` keyframes and show the attribute value: the finished trace. */
+@keyframes trace-draw {
+  from {
+    width: 0;
+  }
+  to {
+    width: 872px;
+  }
+}
+
+.trace-draw {
+  animation: trace-draw 1.5s cubic-bezier(0.65, 0, 0.35, 1) backwards;
+}
+
+@keyframes ink-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ink-fade {
+  animation: ink-fade 0.5s ease-out backwards;
+}
+
 /* Paper lifted off the desk. Tailwind's default shadow is a faint black at low
    opacity, which on a near-black ground is invisible, so the sheets sat flat
    against the shell. A deeper, warmer shadow is what reads as a sheet resting on
@@ -113,12 +174,27 @@ body {
   font-family: var(--font-body);
 }
 
+/* OSM's standard raster tiles are drawn for a light page and would sit in the
+   console like a lit window. Inverting and re-rotating the hue turns them into
+   a dark chart, and the final desaturate-plus-sepia pulls the result into the
+   shell's warm hue family. Only the tile pane is filtered: the amber route,
+   the markers and the controls live in other panes and keep their true colour.
+   The tile source itself stays plain OpenStreetMap. */
+.map-instrument .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) contrast(0.9) saturate(0.35) sepia(0.2) brightness(0.85);
+}
+
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: var(--color-paper);
   color: var(--color-ink);
   border-radius: 2px;
   box-shadow: 0 2px 12px color-mix(in srgb, var(--color-console) 40%, transparent);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--color-ink);
+  opacity: 0.55;
 }
 
 .leaflet-control-attribution {
@@ -128,6 +204,38 @@ body {
 
 .leaflet-control-attribution a {
   color: var(--color-signal);
+}
+
+/* The zoom control ships as white buttons with black glyphs — a light-page
+   assumption again. Restyled to console chrome so the map reads as one
+   instrument rather than a website embedded in it. */
+.leaflet-bar {
+  border: 1px solid var(--color-hairline) !important;
+  box-shadow: none !important;
+}
+
+.leaflet-bar a {
+  background: var(--color-console-2) !important;
+  color: var(--color-body) !important;
+  border-bottom-color: var(--color-hairline) !important;
+}
+
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  color: var(--color-signal) !important;
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background: var(--color-console) !important;
+  color: var(--color-hairline) !important;
+}
+
+.leaflet-control-scale-line {
+  background: color-mix(in srgb, var(--color-console) 70%, transparent) !important;
+  border-color: var(--color-steel) !important;
+  color: var(--color-steel) !important;
+  font-family: var(--font-data) !important;
+  font-size: 0.625rem !important;
 }
 
 /* Print: drop the console, keep the paper. One sheet per page. */
@@ -154,12 +262,14 @@ body {
 
   /* Both wrappers: the two-column shell, and the full-width band the sheets
      live in. Either one's max-width or padding would otherwise narrow the
-     paper on the page. */
+     paper on the page. Opacity is forced back up in case a print run catches
+     the replan dimming. */
   main,
   body > div > section {
     display: block !important;
     max-width: none !important;
     padding: 0 !important;
+    opacity: 1 !important;
   }
 
   /* The sheet must print at full size, not at the width of a screen column. */
@@ -173,6 +283,14 @@ body {
 
   .sheet-lift {
     box-shadow: none !important;
+  }
+
+  /* A print run must never catch a sheet mid-choreography: no animation, only
+     the finished state. */
+  .rise-in,
+  .trace-draw,
+  .ink-fade {
+    animation: none !important;
   }
 
   article {

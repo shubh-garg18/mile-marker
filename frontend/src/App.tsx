@@ -15,6 +15,10 @@ const COLD_START_HINT_MS = 3000;
 
 export default function App() {
   const [plan, setPlan] = useState<TripPlan | null>(null);
+  // Bumped when a new plan lands. Keys the result panels so each fresh plan
+  // remounts them and replays the arrival choreography; a failed or repeated
+  // request replays nothing.
+  const [planVersion, setPlanVersion] = useState(0);
   const [isPlanning, setIsPlanning] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [showColdStartHint, setShowColdStartHint] = useState(false);
@@ -48,7 +52,10 @@ export default function App() {
 
     try {
       const result = await planTrip(request);
-      if (requestId.current === id) setPlan(result);
+      if (requestId.current === id) {
+        setPlan(result);
+        setPlanVersion(id);
+      }
     } catch (caught) {
       if (requestId.current === id) {
         setError(
@@ -67,6 +74,11 @@ export default function App() {
   }
 
   const origin = plan?.waypoints.find((point) => point.role === "current");
+  const dropoff = plan?.waypoints.find((point) => point.role === "dropoff");
+
+  // While a replan is in flight the old plan stays on screen; dimming it says
+  // "superseded" without yanking anything away.
+  const staleWhilePlanning = isPlanning && plan ? "opacity-40" : "";
 
   // A polite live region is only reliably announced when it already exists and
   // its contents change. Rendering it only while planning would mount the region
@@ -117,6 +129,14 @@ export default function App() {
           {plan ? (
             <div className="ml-auto flex items-center gap-3 desk:gap-5">
               <p className="hidden font-data text-xs tabular-nums text-steel desk:block">
+                {origin && dropoff ? (
+                  <>
+                    <span className="text-body">{origin.label}</span>
+                    <span className="mx-1.5">→</span>
+                    <span className="text-body">{dropoff.label}</span>
+                    <span className="mx-2 text-hairline">·</span>
+                  </>
+                ) : null}
                 {miles(plan.trip.total_distance_miles)} mi
                 <span className="mx-2 text-hairline">·</span>
                 {plan.trip.days_count} {plan.trip.days_count === 1 ? "sheet" : "sheets"}
@@ -147,24 +167,46 @@ export default function App() {
           </div>
 
           {plan ? (
-            <>
-              <div className="rounded-sm border border-hairline bg-console-2 p-5">
+            <div
+              className={`flex flex-col gap-8 transition-opacity duration-300 ${staleWhilePlanning}`}
+              aria-busy={isPlanning || undefined}
+            >
+              <div
+                key={`summary-${planVersion}`}
+                className="rise-in rounded-sm border border-hairline bg-console-2 p-5"
+              >
                 <TripSummary trip={plan.trip} warnings={plan.warnings} />
               </div>
-              <div className="rounded-sm border border-hairline bg-console-2 p-5">
+              <div
+                key={`itinerary-${planVersion}`}
+                className="rise-in rounded-sm border border-hairline bg-console-2 p-5"
+                style={{ animationDelay: "0.08s" }}
+              >
                 <StopItinerary
                   stops={plan.stops}
                   originLabel={origin?.label ?? "Origin"}
                   departure={plan.trip.start_datetime}
                 />
               </div>
-            </>
+            </div>
           ) : null}
         </aside>
 
-        <section ref={results} className="flex min-w-0 scroll-mt-20 flex-col gap-8">
+        <section
+          ref={results}
+          className={`flex min-w-0 scroll-mt-20 flex-col gap-8 transition-opacity duration-300 ${staleWhilePlanning}`}
+          aria-busy={isPlanning || undefined}
+        >
           {plan ? (
-            <div className="print:hidden">
+            /* Sticky on desktop: the trip panels on the left run long, and a
+               map pinned at 26rem left the rest of the column dead. Filling
+               the viewport and riding along while the itinerary scrolls keeps
+               every stop being read visible on the chart beside it. */
+            <div
+              key={`map-${planVersion}`}
+              className="rise-in print:hidden desk:sticky desk:top-16"
+              style={{ animationDelay: "0.05s" }}
+            >
               <RouteMap route={plan.route} stops={plan.stops} waypoints={plan.waypoints} />
             </div>
           ) : (
@@ -180,7 +222,10 @@ export default function App() {
       {plan ? (
         <section
           id="log-sheets"
-          className="mx-auto min-w-0 max-w-[110rem] scroll-mt-20 px-5 pb-8 desk:px-8"
+          key={`sheets-${planVersion}`}
+          className={`rise-in mx-auto min-w-0 max-w-[110rem] scroll-mt-20 px-5 pb-8 transition-opacity duration-300 desk:px-8 ${staleWhilePlanning}`}
+          style={{ animationDelay: "0.12s" }}
+          aria-busy={isPlanning || undefined}
         >
           <LogSheetStack days={plan.days} header={plan.log_header} trip={plan.trip} />
         </section>

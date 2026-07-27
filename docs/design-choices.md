@@ -210,6 +210,36 @@ reached by getting it wrong first, that is recorded too.
 
 ## Frontend
 
+- **The sheet reproduces the reference form's full anatomy.** Comparing against
+  `docs/reference/blank-paper-log.png` showed the drawn sheet was missing the black hour-band
+  masthead with white numerals, the boxed month/day/year, the From/To row, the heavy remarks
+  bar and the recap strip. All are now drawn from a shared `SheetGrid` module.
+
+- **Recap fields A, B and C stay blank printed fields.** The API carries a scalar cycle figure,
+  which cannot reconstruct an 8-day history, so filling them would be inventing numbers on a
+  compliance document. "On duty today" is filled, because it is by definition the sum of lines
+  3 and 4. App-level cycle arithmetic stays in the trip summary, where it is derived rather
+  than guessed.
+
+- **From and To take the day's first and last remark locations.** A day spent wholly inside a
+  rest prints them blank, as the paper form would.
+
+- **The empty state is built from the same components as the filled sheet.** Header fields,
+  grid, shipping block and recap all come from `SheetGrid`, so the blank and the finished sheet
+  cannot drift apart visually.
+
+- **Map tiles are re-graded, not replaced.** The source stays plain OpenStreetMap, with a CSS
+  filter applied to `.leaflet-tile-pane` only. The route, markers and controls live in other
+  panes and keep true colour, so the amber stays amber.
+
+- **The duty trace inks itself in via an animated SVG clip whose resting width is the full
+  grid.** Reduced motion, print, and browsers without CSS geometry animation therefore all show
+  the finished trace immediately rather than an empty one.
+
+- **Itinerary day headers are numbered from the trip's start date.** "Day N" then always matches
+  "Sheet N", even across a day spent entirely at rest. Per-stop dates were dropped once the
+  header carried the date.
+
 - **The header carries identity and actions, nothing else.** It used to hold a wordmark, an
   eyebrow, a full descriptive sentence and a button, all competing on one baseline. The
   sentence was onboarding copy living permanently in chrome; it moved to the empty state,

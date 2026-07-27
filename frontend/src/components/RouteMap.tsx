@@ -1,6 +1,14 @@
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  Polyline,
+  Popup,
+  ScaleControl,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 
@@ -32,7 +40,11 @@ const STOP_GLYPHS: Record<StopType, string> = {
 };
 
 /** Hoisted so Leaflet sees a stable identity and does not redraw the line. */
-const ROUTE_LINE = { color: "var(--color-signal)", weight: 4, opacity: 0.9 } as const;
+const ROUTE_LINE = { color: "var(--color-signal)", weight: 4, opacity: 0.95 } as const;
+
+/** A dark casing under the amber line — road-atlas practice, and it keeps the
+ *  route crisp where it crosses the map's own light road strokes. */
+const ROUTE_CASING = { color: "var(--color-console)", weight: 9, opacity: 0.6 } as const;
 
 /** Icons are cached by appearance. react-leaflet calls setIcon whenever the prop
  *  identity changes, which rebuilds the marker element and drops any open popup.
@@ -65,7 +77,7 @@ export default function RouteMap({ route, stops, waypoints }: RouteMapProps) {
       <MapContainer
         bounds={bounds}
         scrollWheelZoom={false}
-        className="h-[26rem] w-full rounded-sm border border-hairline bg-console-2"
+        className="map-instrument h-[22rem] w-full rounded-sm border border-hairline bg-console-2 desk:h-[calc(100vh-7.5rem)]"
       >
         <FitToRoute bounds={bounds} />
 
@@ -75,6 +87,9 @@ export default function RouteMap({ route, stops, waypoints }: RouteMapProps) {
           maxZoom={19}
         />
 
+        <ScaleControl position="bottomleft" imperial metric={false} />
+
+        <Polyline positions={route.geometry} pathOptions={ROUTE_CASING} />
         <Polyline positions={route.geometry} pathOptions={ROUTE_LINE} />
 
         {origin ? (
