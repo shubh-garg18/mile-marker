@@ -187,7 +187,7 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={isFaulty || undefined}
         aria-describedby={describedBy || undefined}
-        className={`rounded-sm border bg-console px-3 py-2 font-data text-sm text-white placeholder:text-steel disabled:opacity-60 ${
+        className={`rounded-sm border bg-console px-3 py-2 font-data text-sm text-bright placeholder:text-steel disabled:opacity-60 ${
           isFaulty ? "border-flag" : "border-hairline focus:border-signal"
         }`}
       />

@@ -1,28 +1,39 @@
 @import "tailwindcss";
 
-/* The design idea is a dispatch console holding paper sheets: dark, quiet,
-   instrument-like chrome around log sheets rendered as warm paper with hairline
-   rules and ink. Every colour and type decision in the app derives from here. */
-@theme {
-  --color-console: #101823; /* app shell, dark dispatch chrome */
-  --color-console-2: #1a2534; /* raised panels */
-  --color-hairline: #5d7a99; /* dividers and input borders, 3.47:1 on a panel */
-  --color-paper: #f4efe3; /* log sheet stock, manila */
-  --color-ink: #1b2430; /* grid rules and duty lines on paper */
-  --color-signal: #e8a33d; /* DOT amber, route line and driving status on screen */
-  --color-steel: #8c9db4; /* off duty; also the secondary text tier */
-  --color-berth: #4c6b8a; /* sleeper berth */
-  --color-onduty: #2e7d74; /* on duty, not driving */
-  --color-flag: #e2685c; /* errors, limit warnings */
-  --color-body: #dbe4ef; /* primary text on the console */
+/* A dispatch desk at night: warm, unlit chrome around log sheets rendered as
+   manila paper with hairline rules and ink.
 
-  /* Paper needs its own two duty colours. Amber is DOT-correct on a dark screen
-     but reaches only 1.88:1 on manila, making it the faintest mark on the sheet
-     and near-invisible in greyscale print, while steel is tuned for legibility on
-     the dark shell and goes too pale on paper. Both are darkened for the sheet;
-     the console keeps the originals. */
-  --color-signal-ink: #a86a12; /* driving, 3.87:1 on manila */
-  --color-steel-ink: #6e819a; /* off duty, 3.47:1 on manila */
+   The shell is a warm neutral, not the usual navy. Manila is a warm stock, and
+   against a blue-grey shell it reads as a picture of paper pasted onto a screen;
+   against warm asphalt it reads as paper lying on a desk. Keeping shell, ink and
+   amber in one hue family also means the accent is the brightest point of a
+   single range rather than a lone bright note on a cold field.
+
+   Every colour and type decision in the app derives from here. */
+@theme {
+  --color-console: #131211; /* page, asphalt at night */
+  --color-console-2: #1c1a17; /* raised panels */
+  --color-hairline: #726a5c; /* dividers and input borders, 3.30:1 on a panel */
+  --color-paper: #f4efe2; /* log sheet stock, manila */
+  --color-ink: #211c15; /* grid rules and duty lines on paper */
+  --color-signal: #f0a72c; /* DOT amber, route line and driving status, 8.6:1 */
+  --color-steel: #a39a8c; /* off duty; also the secondary text tier, 6.4:1 */
+  --color-berth: #7b84a8; /* sleeper berth, the one cool note: night, rest */
+  --color-onduty: #3e9080; /* on duty, not driving */
+  --color-flag: #e8705e; /* errors, limit warnings, 5.8:1 */
+  --color-body: #ece7dd; /* primary text on the console, 14:1 */
+  --color-bright: #f7f3ea; /* the emphatic tier, for figures that must lead */
+
+  /* Paper needs its own duty colours. The screen values are tuned against the
+     dark shell, and on manila amber falls to 1.8:1 and steel to 2.4:1, which is
+     the faintest mark on the sheet and close to invisible in greyscale print.
+     Berth and on-duty clear 3:1 on paper on their own, but are given ink
+     variants too: a sheet where two rows are drawn at 3.2:1 and two at 4.5:1
+     reads as unevenly inked, and the darker pair survives a fax. */
+  --color-signal-ink: #96610f; /* driving, 4.3:1 on manila */
+  --color-steel-ink: #7a7264; /* off duty, 4.1:1 on manila */
+  --color-berth-ink: #4a5578; /* sleeper berth, 6.2:1 on manila */
+  --color-onduty-ink: #2f7364; /* on duty not driving, 4.8:1 on manila */
 
   --font-display: "Archivo", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
@@ -57,6 +68,32 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* The blank sheet's loading pass: one sweep across the 864 px that are the day.
+   Motion carries the meaning here, so it is slow and singular rather than a
+   spinner. */
+@keyframes sheet-sweep {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(864px);
+  }
+}
+
+.sheet-sweep {
+  animation: sheet-sweep 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* The global reduced-motion rule collapses durations, which would park the
+   sweep at the far edge looking like a stray rule on the grid. Withdraw it and
+   hold a still amber edge at midnight instead. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet-sweep {
+    animation: none !important;
+    opacity: 0.55;
   }
 }
 

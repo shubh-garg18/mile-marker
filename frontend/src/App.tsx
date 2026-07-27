@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { ApiError, checkHealth, planTrip } from "./api/client";
+import BlankSheet from "./components/BlankSheet";
 import LogSheetStack from "./components/LogSheetStack";
 import RouteMap from "./components/RouteMap";
 import StopItinerary from "./components/StopItinerary";
@@ -76,8 +77,17 @@ export default function App() {
 
       <header className="border-b border-hairline print:hidden">
         <div className="mx-auto flex max-w-[110rem] flex-wrap items-baseline gap-x-4 gap-y-1 px-5 py-4 desk:px-8">
-          <h1 className="font-display text-lg font-semibold tracking-tight text-white">
-            ELD Trip Planner
+          <h1 className="flex items-baseline gap-2.5">
+            <span className="font-display text-lg font-bold tracking-tight text-bright">
+              Mile Marker
+            </span>
+            <span
+              aria-hidden="true"
+              className="hidden h-3.5 w-px self-center bg-hairline desk:block"
+            />
+            <span className="font-display text-xs tracking-[0.2em] text-signal uppercase">
+              ELD trip planner
+            </span>
           </h1>
           <p className="text-sm text-steel">
             Route, required stops, and a drawn FMCSA daily log for every day of the trip.
@@ -129,7 +139,7 @@ export default function App() {
               <RouteMap route={plan.route} stops={plan.stops} waypoints={plan.waypoints} />
             </div>
           ) : (
-            <EmptyState />
+            <BlankSheet isPlanning={isPlanning} />
           )}
         </section>
       </main>
@@ -153,8 +163,8 @@ function PlanningNotice({ showColdStartHint }: { showColdStartHint: boolean }) {
       <p className="font-data text-sm text-signal">Routing and simulating hours of service…</p>
       {showColdStartHint ? (
         <p className="mt-1.5 text-xs leading-relaxed text-steel">
-          The API runs on a free instance that sleeps when idle. Waking it can take up to a
-          minute. This is not a failure.
+          The API runs on a free instance that sleeps when idle. Waking it can take up to a minute.
+          This is not a failure.
         </p>
       ) : null}
     </div>
@@ -169,21 +179,5 @@ function ErrorNotice({ message }: { message: string }) {
     >
       {message}
     </p>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex min-h-[26rem] flex-col justify-center gap-3 rounded-sm border border-dashed border-hairline px-8 py-16">
-      <p className="max-w-prose text-sm leading-relaxed text-steel">
-        Enter a trip on the left. You'll get a truck-legal route with every stop the
-        regulations require: the 30-minute break, fuel every 1,000 miles, 10-hour rests, and a
-        34-hour restart if the 70-hour cycle runs out. Each calendar day the trip spans gets
-        its own filled daily log sheet.
-      </p>
-      <p className="font-data text-xs text-steel">
-        Property-carrying driver · 70 hours / 8 days · no adverse conditions
-      </p>
-    </div>
   );
 }

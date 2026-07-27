@@ -60,9 +60,9 @@ const HAIRLINE = "var(--color-ink)";
 /** Amber is unreadable on manila; the sheet uses the darker paper variant. */
 const PAPER_STATUS_COLORS: Record<DutyStatus, string> = {
   off_duty: "var(--color-steel-ink)",
-  sleeper_berth: "var(--color-berth)",
+  sleeper_berth: "var(--color-berth-ink)",
   driving: "var(--color-signal-ink)",
-  on_duty_not_driving: "var(--color-onduty)",
+  on_duty_not_driving: "var(--color-onduty-ink)",
 };
 
 /** Minute from midnight to an x coordinate. */
@@ -82,7 +82,10 @@ interface LogSheetProps {
 
 export default function LogSheet({ day, header, totalDays }: LogSheetProps) {
   return (
-    <article aria-label={`Driver\u0027s daily log for ${day.date}`} className="break-inside-avoid rounded-sm bg-paper p-6 text-ink shadow-sm print:rounded-none print:p-4 print:shadow-none">
+    <article
+      aria-label={`Driver\u0027s daily log for ${day.date}`}
+      className="break-inside-avoid rounded-sm bg-paper p-6 text-ink shadow-sm print:rounded-none print:p-4 print:shadow-none"
+    >
       <SheetHeader day={day} header={header} totalDays={totalDays} />
 
       {/* The grid stops shrinking at 68rem and scrolls instead. Left to scale
@@ -520,7 +523,6 @@ function splitRowLabel(index: number, label: string): [string, string | null] {
   const [head, tail] = label.split(" (");
   return tail ? [`${index}. ${head}`, `(${tail}`] : [`${index}. ${label}`, null];
 }
-
 
 function truncate(text: string, limit: number): string {
   return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;

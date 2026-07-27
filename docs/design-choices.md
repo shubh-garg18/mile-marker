@@ -210,6 +210,36 @@ reached by getting it wrong first, that is recorded too.
 
 ## Frontend
 
+- **The console is a warm neutral, not the usual navy.** The sheets are manila, and a warm
+  stock on a blue-grey shell reads as a picture of paper pasted onto a screen rather than
+  paper lying on a desk. Pulling the shell to warm asphalt puts both in the same light and
+  makes the DOT amber the brightest point of one continuous range instead of a lone bright
+  accent on a cold field. Every token clears its WCAG floor: text at 4.5:1 or better on both
+  surfaces, the hairline at 3.3:1 as a UI boundary.
+
+- **Paper carries its own four duty colours.** The screen values are tuned against the dark
+  shell, and on manila amber falls to 1.8:1 and steel to 2.4:1, which is the faintest mark on
+  the sheet and close to invisible in greyscale print. Berth and on-duty clear 3:1 on paper
+  unaided, but have ink variants anyway: a sheet drawn with two rows at 3.2:1 and two at
+  4.5:1 looks unevenly inked, and the darker pair survives a fax.
+
+- **The empty state is a real, blank duty-status grid.** A driver's day begins as an unfilled
+  Record of Duty Status, so the app does too. Showing the actual artifact before anything is
+  typed states what the product makes faster than a paragraph, and it is drawn from the same
+  geometry as the finished sheet, so it is not a mock-up of something that looks different
+  once it is real. It replaced a dashed placeholder box.
+
+- **The loading state is that grid being swept.** While a plan runs, one slow amber pass
+  crosses the blank sheet from midnight to midnight, so the progress indicator is the subject:
+  24 hours being simulated. Reduced motion withdraws the animation rather than inheriting the
+  global duration collapse, which would park the sweep at the far edge looking like a stray
+  rule on the grid.
+
+- **The cycle meter shows two segments, not one.** It used to be a rounded progress bar
+  carrying only the figure on arrival, which hides the number a dispatcher is actually
+  deciding on: what this trip costs. Steel is what was already spent, amber is what the trip
+  adds, and the gap on the right is what is left to sell.
+
 - **Stop markers are Leaflet `divIcon`s.** This sidesteps the bundler problem with Leaflet's
   default icon URLs entirely, and lets each stop type carry its own glyph and duty-status
   colour. Icons are cached by appearance, because react-leaflet calls `setIcon` whenever the

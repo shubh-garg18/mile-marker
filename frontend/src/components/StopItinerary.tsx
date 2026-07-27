@@ -62,16 +62,7 @@ interface EntryProps {
   departsAt?: string;
 }
 
-function Entry({
-  mileage,
-  time,
-  date,
-  color,
-  title,
-  location,
-  detail,
-  departsAt,
-}: EntryProps) {
+function Entry({ mileage, time, date, color, title, location, detail, departsAt }: EntryProps) {
   return (
     <li className="relative flex items-start gap-4 py-2.5">
       <span className="w-14 shrink-0 pt-0.5 text-right font-data text-xs text-steel tabular-nums">
@@ -86,13 +77,13 @@ function Entry({
       />
 
       <div className="min-w-0 flex-1">
-        <p className="font-display text-sm font-medium text-white">{title}</p>
+        <p className="font-display text-sm font-medium text-bright">{title}</p>
         <p className="truncate text-sm text-steel">{location}</p>
         <p className="font-data text-xs text-steel">{detail}</p>
       </div>
 
       <span className="shrink-0 text-right font-data text-xs tabular-nums">
-        <span className="block text-white">{time}</span>
+        <span className="block text-bright">{time}</span>
         {departsAt ? <span className="block text-steel">→ {departsAt}</span> : null}
         <span className="block text-steel">{date}</span>
       </span>
