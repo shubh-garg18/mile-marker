@@ -181,6 +181,36 @@ def test_directions_sends_lon_lat_and_the_hgv_vehicle_type(ors):
     assert ors.calls[0]["headers"]["Authorization"] == "test-key"
 
 
+def test_directions_asks_for_instructions_because_that_is_what_carries_the_legs(ors):
+    """`instructions: false` looks like an easy saving and breaks every trip.
+
+    ORS omits `properties.segments` from the response altogether when
+    instructions are off, and the per-leg distance and duration in there are what
+    the planner builds its activities from. Verified against the live API: the
+    request below returns a valid 200 with a summary and no segments at all.
+    """
+    ors.queue.append(FakeResponse(200, directions_payload()))
+
+    ors_client.directions([(32.7767, -96.797), (35.4676, -97.5164)])
+
+    assert ors.calls[0]["json"]["instructions"] is True
+
+
+def test_directions_widens_the_snap_radius_past_the_ors_default(ors):
+    """A geocoded city centroid is often not within 350 m of a truck road.
+
+    "Oklahoma City, OK" is the live example: ORS answers code 2010 and the trip
+    fails outright. One radius per coordinate is the shape ORS requires.
+    """
+    ors.queue.append(FakeResponse(200, directions_payload()))
+
+    ors_client.directions([(32.7767, -96.797), (35.4676, -97.5164)])
+
+    radiuses = ors.calls[0]["json"]["radiuses"]
+    assert radiuses == [ors_client.SNAP_RADIUS_METERS] * 2
+    assert ors_client.SNAP_RADIUS_METERS > 350
+
+
 def test_directions_returns_geometry_in_leaflet_order(ors):
     ors.queue.append(FakeResponse(200, directions_payload()))
 

@@ -59,6 +59,16 @@ REVERSE_CACHE_PRECISION = 3
 #: degraded upstream also answers with nothing.
 NEGATIVE_CACHE_SECONDS = 300
 
+#: How far ORS may look from a requested point to find a road a truck can use.
+#: Its default is 350 m, which is not enough: the geocoder answers a city query
+#: with the city's centroid, and a centroid often lands in a pedestrian core or a
+#: park. "Oklahoma City, OK" geocodes to a point with no routable HGV road inside
+#: 350 m and the whole trip fails with ORS code 2010. Measured against the live
+#: API, 1 km is enough for that case and 5 km returns an identical route, so the
+#: wider radius costs nothing where a nearer road exists and only helps a rural
+#: pickup. A genuinely unreachable point still fails, which is correct.
+SNAP_RADIUS_METERS = 5000
+
 
 @dataclass(frozen=True, slots=True)
 class GeocodedPlace:
@@ -130,7 +140,13 @@ def directions(points: list[Coordinate]) -> RouteGeometry:
     payload = {
         # ORS wants [longitude, latitude]. This is the conversion boundary.
         "coordinates": [[lon, lat] for lat, lon in points],
-        "instructions": False,
+        # Must stay true. It reads like turn-by-turn text we do not use, but ORS
+        # drops `properties.segments` from the response entirely when it is false,
+        # and the per-leg distance and duration in there are what the engine plans
+        # against. Setting it false costs about 40 KB and the whole trip.
+        "instructions": True,
+        # One radius per coordinate, which is the shape ORS requires.
+        "radiuses": [SNAP_RADIUS_METERS] * len(points),
         # Required for driving-hgv: without it, vehicle restrictions silently do
         # not apply and the route is no longer truck-aware.
         "options": {"vehicle_type": "hgv"},
